@@ -57,9 +57,9 @@ public class DbWorker {
             DB_USER = properties.getProperty("db.user");
             DB_PASSWORD = properties.getProperty("db.password");
         } else {
-            DB_CONNECTION = System.getenv("JDBC_DATABASE_URL");
-            DB_USER = System.getenv("JDBC_DATABASE_USERNAME");
-            DB_PASSWORD = System.getenv("JDBC_DATABASE_PASSWORD");
+            DB_CONNECTION = System.getenv(properties.getProperty("system.db.url"));
+            DB_USER = System.getenv(properties.getProperty("system.db.user"));
+            DB_PASSWORD = System.getenv(properties.getProperty("system.db.password"));
         }
 
         if (JPA_USE) {
