@@ -44,7 +44,7 @@ public class FlatsController extends HttpServlet {
     private void addFlat(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
 
-        try {
+        try (FlatsDao flatsDao = DB_WORKER.createFlatsDao()){
             req.setAttribute("select", "All Flats");
             Flat flat = parseFlat(req);
             SearchParameters searchParameters = parseSearchParameters(req);
@@ -54,10 +54,8 @@ public class FlatsController extends HttpServlet {
                 req.getRequestDispatcher("/WEB-INF/views/flats.jsp").forward(req, resp);
                 return;
             }
-            FlatsDao flatsDao = DB_WORKER.createFlatsDao();
             flatsDao.insertFlat(flat);
             List<Flat> flats = flatsDao.selectAllFlats();
-            flatsDao.closeConnection();
             req.setAttribute("success_message", "Flat successfully added");
             req.setAttribute("flats", flats);
         } catch (SQLException e) {
@@ -71,7 +69,7 @@ public class FlatsController extends HttpServlet {
     private void getFlats(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
 
-        try {
+        try (FlatsDao flatsDao = DB_WORKER.createFlatsDao()) {
             req.setAttribute("select", req.getParameter("default") == null ? "Found Flats" : "All Flats");
             Flat flat = req.getParameter("default") == null ? parseFlat(req) : new Flat();
             SearchParameters searchParameters = (req.getParameter("default") == null) ?
@@ -83,10 +81,8 @@ public class FlatsController extends HttpServlet {
                 return;
             }
 
-            FlatsDao flatsDao = DB_WORKER.createFlatsDao();
             List<Flat> flats = req.getParameter("default") == null ?
                     flatsDao.selectFlats(searchParameters) : flatsDao.selectAllFlats();
-            flatsDao.closeConnection();
             req.setAttribute("success_message", "Flats successfully found");
             req.setAttribute("flats", flats);
         } catch (SQLException e) {

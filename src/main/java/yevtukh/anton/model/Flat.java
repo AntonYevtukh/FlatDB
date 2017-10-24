@@ -1,14 +1,33 @@
 package yevtukh.anton.model;
 
+import javax.persistence.*;
+
 /**
  * Created by Anton on 14.10.2017.
  */
+@Entity
+@Table(name = "Flats")
+@NamedQuery(name = "Flat.selectAll", query = "SELECT f FROM Flat f")
 public class Flat {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+
+    @Column(name = "district", nullable = false)
+    @Enumerated
     private District district;
+
+    @Column(name = "address", nullable = false)
     private String address;
+
+    @Column(name = "rooms", nullable = false)
     private int rooms;
+
+    @Column(name = "area", nullable = false)
     private int area;
+
+    @Column(name = "price", nullable = false)
     private int price;
 
     public Flat() {

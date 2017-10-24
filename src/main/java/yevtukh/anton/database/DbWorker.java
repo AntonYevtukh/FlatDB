@@ -3,10 +3,14 @@ package yevtukh.anton.database;
 import yevtukh.anton.database.initializers.DbInitialiser;
 import yevtukh.anton.database.initializers.MySqlInitializer;
 import yevtukh.anton.database.initializers.PostgreSqlInitializer;
+import yevtukh.anton.model.dao.implementations.jpa.JpaFlatsDao;
 import yevtukh.anton.model.dao.implementations.mysql.MySqlFlatsDao;
 import yevtukh.anton.model.dao.implementations.postgresql.PostgreSqlFlatsDao;
 import yevtukh.anton.model.dao.interfaces.FlatsDao;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
@@ -20,6 +24,8 @@ public class DbWorker {
     private final String DB_USER;
     private final String DB_PASSWORD;
     private final String DBMS_NAME;
+    private boolean JPA_USE;
+    private final EntityManagerFactory ENTITY_MANAGER_FACTORY;
     private final boolean DROP;
     private static DbWorker instance;
 
@@ -42,23 +48,11 @@ public class DbWorker {
         properties.load(inputStream);
 
         DBMS_NAME = properties.getProperty("dbms.name");
+        DROP = "1".equals(properties.getProperty("db.drop"));
+        JPA_USE = "1".equals(properties.getProperty("jpa.use"));
+        boolean runtimeConfig = "1".equals(properties.getProperty("db.runtime_config"));
 
-        boolean drop;
-        try {
-            drop = Integer.parseInt(properties.getProperty("db.drop")) == 1 ? true : false;
-        } catch (IllegalArgumentException | NullPointerException e) {
-            drop = true;
-        }
-        DROP = drop;
-
-        boolean environmentConfig;
-        try {
-            environmentConfig = Integer.parseInt(properties.getProperty("db.environment_config")) == 1 ? true : false;
-        } catch (IllegalArgumentException | NullPointerException e) {
-            environmentConfig = false;
-        }
-
-        if (!environmentConfig) {
+        if (!runtimeConfig) {
             DB_CONNECTION = properties.getProperty("db.url");
             DB_USER = properties.getProperty("db.user");
             DB_PASSWORD = properties.getProperty("db.password");
@@ -67,11 +61,25 @@ public class DbWorker {
             DB_USER = System.getenv("JDBC_DATABASE_USERNAME");
             DB_PASSWORD = System.getenv("JDBC_DATABASE_PASSWORD");
         }
+
+        if (JPA_USE) {
+            if (runtimeConfig) {
+                properties.put("javax.persistence.jdbc.url", DB_CONNECTION);
+                properties.put("javax.persistence.jdbc.user", DB_USER);
+                properties.put("javax.persistence.jdbc.password", DB_PASSWORD);
+            }
+            ENTITY_MANAGER_FACTORY = Persistence.createEntityManagerFactory(DBMS_NAME, properties);
+        }
+        else
+            ENTITY_MANAGER_FACTORY = null;
     }
 
     public void initDB()
             throws SQLException, ClassNotFoundException {
-        getDbInitializer().initDB(DROP);
+        if (!JPA_USE) {
+            getDbInitializer().initDB(DROP);
+        }
+        fillDb();
     }
 
     public Connection getConnection()
@@ -81,6 +89,8 @@ public class DbWorker {
 
     public FlatsDao createFlatsDao()
             throws SQLException {
+        if (JPA_USE)
+            return new JpaFlatsDao(ENTITY_MANAGER_FACTORY.createEntityManager());
         switch (DBMS_NAME) {
             case "mysql":
                 return new MySqlFlatsDao(getConnection());
@@ -93,10 +103,10 @@ public class DbWorker {
 
     public void fillDb()
             throws SQLException, ClassNotFoundException {
-        if (InitData.INITIAL_FLATS != null) {
-            FlatsDao flatsDao = createFlatsDao();
-            flatsDao.insertFlats(InitData.INITIAL_FLATS);
-            flatsDao.closeConnection();
+        if (DROP && InitData.INITIAL_FLATS != null) {
+            try(FlatsDao flatsDao = createFlatsDao()) {
+                flatsDao.insertFlats(InitData.INITIAL_FLATS);
+            }
         }
     }
 
@@ -110,5 +120,10 @@ public class DbWorker {
             default:
                 throw new SQLException("Database management system is not supported");
         }
+    }
+
+    public void stop() {
+        if (ENTITY_MANAGER_FACTORY != null)
+            ENTITY_MANAGER_FACTORY.close();
     }
 }

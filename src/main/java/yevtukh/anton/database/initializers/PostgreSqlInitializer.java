@@ -39,9 +39,5 @@ public class PostgreSqlInitializer implements DbInitialiser{
                             "    price INT NOT NULL" +
                             ");");
         }
-
-        if (drop) {
-            DbWorker.getInstance().fillDb();
-        }
     }
 }

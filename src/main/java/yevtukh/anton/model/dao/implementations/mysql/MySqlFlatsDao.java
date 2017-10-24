@@ -90,7 +90,7 @@ public class MySqlFlatsDao implements FlatsDao {
         return flats;
     }
 
-    public void closeConnection()
+    public void close()
             throws SQLException {
         if (connection != null)
             connection.close();

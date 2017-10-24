@@ -1,4 +1,4 @@
-package yevtukh.anton.model;
+package yevtukh.anton.controllers;
 
 import yevtukh.anton.database.DbWorker;
 import yevtukh.anton.database.InitData;
@@ -30,6 +30,6 @@ public class FlatsContextListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
-
+        DbWorker.getInstance().stop();
     }
 }

@@ -32,9 +32,5 @@ public class MySqlInitializer implements DbInitialiser {
                             "    price INT NOT NULL" +
                             ");");
         }
-
-        if (drop) {
-            DbWorker.getInstance().fillDb();
-        }
     }
 }
