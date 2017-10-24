@@ -1,6 +1,8 @@
 yevtukh\anton\database\DbWorker.class
 yevtukh\anton\model\dao\implementations\postgresql\PostgreSqlFlatsDao.class
 yevtukh\anton\database\initializers\MySqlInitializer.class
+yevtukh\anton\model\dao\implementations\jpa\JpaFlatsDao.class
+yevtukh\anton\controllers\FlatsContextListener.class
 yevtukh\anton\database\InitData.class
 yevtukh\anton\model\SearchParameters.class
 yevtukh\anton\model\dao\implementations\mysql\MySqlFlatsDao.class
@@ -10,4 +12,3 @@ yevtukh\anton\database\initializers\PostgreSqlInitializer.class
 yevtukh\anton\database\initializers\DbInitialiser.class
 yevtukh\anton\model\Flat.class
 yevtukh\anton\model\dao\interfaces\FlatsDao.class
-yevtukh\anton\model\FlatsContextListener.class
